@@ -23,7 +23,7 @@ fun main() {
     }
 
     // Read the input from the `src/Day01.txt` file.
-    val input = readInput("DaXX")
+    val input = readInput("DayXX")
     profiledExecute("Part 1") {
         val day = DayXX.fromInput(input)
         day.solvePart1()
