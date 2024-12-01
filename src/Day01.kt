@@ -14,14 +14,16 @@ private class Day01(val lists: List<List<Int>>) {
 
     fun solvePart1(): Long {
         val sortedLists = lists.map { it.sorted() }
-        return listIndices
-            .map { abs(sortedLists[1][it] - sortedLists[0][it]) }
-            .sum()
+        return listIndices.sumOf { abs(sortedLists[1][it] - sortedLists[0][it]) }
             .toLong()
     }
 
     fun solvePart2(): Long {
-        return 0L
+        val counts = lists.first().toSet()
+            .associateWith { num -> lists[1].count { it == num } }
+        return lists.first()
+            .sumOf { it * counts.getValue(it) }
+            .toLong()
     }
 }
 
