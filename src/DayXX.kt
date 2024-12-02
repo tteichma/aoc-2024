@@ -21,6 +21,10 @@ fun main() {
         val day = DayXX.fromInput(testInput)
         day.solvePart1()
     }
+    profiledCheck(0L, "Part 2 test") {
+        val day = DayXX.fromInput(testInput)
+        day.solvePart2()
+    }
 
     // Read the input from the `src/Day01.txt` file.
     val input = readInput("DayXX")

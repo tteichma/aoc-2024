@@ -5,24 +5,39 @@ private class Day02(val measurements: List<List<Int>>) {
         }
     }
 
+    fun getNumSafeReports(ignoreSingleValue: Boolean): Long {
+        val allMeasurementVariations = measurements.map { measurement ->
+            listOf(measurement) + if (ignoreSingleValue) {
+                measurement.indices.map {
+                    val filteredMeasurement = measurement.toMutableList()
+                    filteredMeasurement.removeAt(it)
+                    filteredMeasurement.toList()
+                }
+            } else listOf()
+        }
+        return allMeasurementVariations.count { measurementsVariations ->
+            val isSafeIncreasing = measurementsVariations.any { m ->
+                m.windowed(2).all {
+                    val diff = it[1] - it[0]
+                    diff in 1..3
+                }
+            }
+            val isSafeDecreasing = measurementsVariations.any { m ->
+                m.windowed(2).all {
+                    val diff = it[1] - it[0]
+                    diff in -3..-1
+                }
+            }
+            isSafeIncreasing || isSafeDecreasing
+        }.toLong()
+    }
+
     fun solvePart1(): Long {
-        val numIncreasing = measurements.count { m ->
-            m.windowed(2).all {
-                val diff = it[1] - it[0]
-                diff >= 1 && diff <= 3
-            }
-        }
-        val numDecreasing = measurements.count { m ->
-            m.windowed(2).all {
-                val diff = it[1] - it[0]
-                diff >= -3 && diff <= -1
-            }
-        }
-        return (numIncreasing + numDecreasing).toLong()
+        return getNumSafeReports(false)
     }
 
     fun solvePart2(): Long {
-        return 0L
+        return getNumSafeReports(true)
     }
 }
 
@@ -33,7 +48,7 @@ fun main() {
         val day = Day02.fromInput(testInput)
         day.solvePart1()
     }
-    profiledCheck(0L, "Part 2 test") {
+    profiledCheck(4L, "Part 2 test") {
         val day = Day02.fromInput(testInput)
         day.solvePart2()
     }
