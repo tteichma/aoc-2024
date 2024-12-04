@@ -31,7 +31,19 @@ private class Day04(val input: List<String>) {
     }
 
     fun solvePart2(): Long {
-        return 0L
+        return (0..input.lastIndex - 2).sumOf { iRow ->
+            (0..input.lastIndex - 2).count { iCol ->
+                input[iRow + 1][iCol + 1] == 'A' &&
+                        (
+                                (input[iRow][iCol] == 'M' && input[iRow + 2][iCol + 2] == 'S') ||
+                                        (input[iRow][iCol] == 'S' && input[iRow + 2][iCol + 2] == 'M')
+                                ) &&
+                        (
+                                (input[iRow][iCol + 2] == 'M' && input[iRow + 2][iCol] == 'S') ||
+                                        (input[iRow][iCol + 2] == 'S' && input[iRow + 2][iCol] == 'M')
+                                )
+            }
+        }.toLong()
     }
 }
 
@@ -42,7 +54,7 @@ fun main() {
         val day = Day04.fromInput(testInput)
         day.solvePart1()
     }
-    profiledCheck(0L, "Part 2 test") {
+    profiledCheck(9L, "Part 2 test") {
         val day = Day04.fromInput(testInput)
         day.solvePart2()
     }
