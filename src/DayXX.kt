@@ -15,7 +15,7 @@ private class DayXX {
 }
 
 fun main() {
-    // Or read a large test input from the `src/Day01_test.txt` file:
+    // Or read a large test input from the `src/DayXX_test.txt` file:
     val testInput = readInput("DayXX_test")
     profiledCheck(0L, "Part 1 test") {
         val day = DayXX.fromInput(testInput)
@@ -26,7 +26,7 @@ fun main() {
         day.solvePart2()
     }
 
-    // Read the input from the `src/Day01.txt` file.
+    // Read the input from the `src/DayXX.txt` file.
     val input = readInput("DayXX")
     profiledExecute("Part 1") {
         val day = DayXX.fromInput(input)
