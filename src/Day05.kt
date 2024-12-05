@@ -1,56 +1,75 @@
-private data class DirectedGraph <N>(val edges: List<Pair<N,N>>) {
+private class Day05(val edges: List<Pair<Int, Int>>, val pageLists: List<List<Int>>) {
     // edge.first is a dependency of edge.second.
-    val nodesToDependencies: Map<N, Set<N>> by lazy {
-        val m = mutableMapOf<N, MutableSet<N>>()
-        for (edge in edges){
-            m.getOrPut(edge.second, { mutableSetOf()}).add(edge.first)
+    val nodesToDependencies: Map<Int, Set<Int>> by lazy {
+        val m = mutableMapOf<Int, MutableSet<Int>>()
+        for (edge in edges) {
+            m.getOrPut(edge.second) { mutableSetOf() }.add(edge.first)
         }
         edges.filter { it.first !in m }.map { m[it.first] = mutableSetOf() }
         m
     }
 
-    fun areNodesReachableInOrder(nodesToVisit: List<N>): Boolean {
-        // Thin out graph to only contain nodes mentiones in the input line.
-        val mutableNodesToPredecessors  = nodesToDependencies
-            .mapValues { m -> m.value.filter { it in nodesToVisit }.toMutableSet() }
-            .toMutableMap()
+    fun getFilteredNodesToDependencies(nodesToKeep: List<Int>) = nodesToDependencies
+        .mapValues { m -> m.value.filter { it in nodesToKeep }.toMutableSet() }
+        .filter { it.key in nodesToKeep }
+        .toMutableMap()
 
-        for (wantedNode in nodesToVisit)
-        {
-            if (mutableNodesToPredecessors[wantedNode]!!.isNotEmpty()) return false
 
-            mutableNodesToPredecessors.values.forEach { it.remove(wantedNode ) }
+    fun areNodesReachableInOrder(nodesToVisit: List<Int>): Boolean {
+        // Thin out graph to only contain nodes mentions in the input line.
+        val mutableNodesToDependencies = getFilteredNodesToDependencies(nodesToVisit)
+        for (wantedNode in nodesToVisit) {
+            if (mutableNodesToDependencies[wantedNode]!!.isNotEmpty()) return false
+
+            mutableNodesToDependencies.values.forEach { it.remove(wantedNode) }
         }
         return true
     }
-}
 
-private class Day05(val graph: DirectedGraph<Int>, val pageLists: List<List<Int>>) {
+    fun suggestValidModeOrder(nodesToVisit: List<Int>): List<Int> {
+        // Thin out graph to only contain nodes mentions in the input line.
+        val mutableNodesToDependencies = getFilteredNodesToDependencies(nodesToVisit)
+
+        val output = mutableListOf<Int>()
+        while (mutableNodesToDependencies.isNotEmpty()) {
+            val validNextNodes = mutableNodesToDependencies
+                .filter { it.value.isEmpty() }
+                .keys
+            output.addAll(validNextNodes)
+            mutableNodesToDependencies.values.forEach { it.removeAll(validNextNodes) }
+            mutableNodesToDependencies.keys.removeAll(validNextNodes)
+        }
+        return output
+    }
+
     companion object {
         fun fromInput(input: List<String>): Day05 {
             val edgePattern = Regex("""(\d+)\|(\d+)""")
             val edges = input
                 .takeWhile { it != "" }
                 .mapNotNull { edgePattern.matchEntire(it)?.groupValues }
-                .map{Pair(it[1].toInt(), it[2].toInt())}
+                .map { Pair(it[1].toInt(), it[2].toInt()) }
             val pageLists = input
-                .dropWhile { it!= "" }
+                .dropWhile { it != "" }
                 .drop(1)
-                .map {line -> line.split(",").map { it.toInt() }}
-            return Day05(DirectedGraph(edges), pageLists)
+                .map { line -> line.split(",").map { it.toInt() } }
+            return Day05(edges, pageLists)
         }
     }
 
     fun solvePart1(): Long {
         return pageLists
-            .filter {graph.areNodesReachableInOrder(it) }
-            .also { it.println() }
+            .filter { areNodesReachableInOrder(it) }
             .sumOf { it[it.size / 2] }
             .toLong()
     }
 
     fun solvePart2(): Long {
-        return 0L
+        return pageLists
+            .filterNot { areNodesReachableInOrder(it) }
+            .map { suggestValidModeOrder(it) }
+            .sumOf { it[it.size / 2] }
+            .toLong()
     }
 }
 
@@ -61,7 +80,7 @@ fun main() {
         val day = Day05.fromInput(testInput)
         day.solvePart1()
     }
-    profiledCheck(0L, "Part 2 test") {
+    profiledCheck(123L, "Part 2 test") {
         val day = Day05.fromInput(testInput)
         day.solvePart2()
     }
