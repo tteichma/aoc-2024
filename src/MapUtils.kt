@@ -84,6 +84,14 @@ open class DataMap<T>(val data: List<List<T>>) {
     val rowIndices = data.indices
     val colIndices = data.first().indices
 
+    fun copyDataWithModification(coordinate: IntCoordinate, newValue: T) = data
+        .withIndex()
+        .map { (iRow, row) ->
+            row
+                .withIndex()
+                .map { if (iRow == coordinate.first && it.index == coordinate.second) newValue else it.value }
+        }
+
     protected fun IntCoordinate.isWithinBoundaries() =
         (this.first in rowIndices && this.second in colIndices)
 

@@ -28,14 +28,18 @@ private class Day06(data: List<List<Boolean>>, val start: Pair<IntCoordinate, Di
         }
     }
 
-    fun solvePart1(): Long {
+    fun walkGuard(): Pair<Int, Boolean> {
         var current = start
+        var leftArea = false
         val visited = mutableSetOf<Pair<IntCoordinate, Direction>>()
 
         while (current !in visited) {
             visited.add(current)
             val next = Pair(current.first + current.second, current.second)
-            if (!next.first.isWithinBoundaries()) break
+            if (!next.first.isWithinBoundaries()) {
+                leftArea = true
+                break
+            }
 
             current = if (data[next.first]) {
                 next
@@ -43,15 +47,32 @@ private class Day06(data: List<List<Boolean>>, val start: Pair<IntCoordinate, Di
                 Pair(current.first, current.second.right)
             }
         }
-        return visited
-            .map { it.first }
-            .toSet()
-            .size
-            .toLong()
+        return Pair(
+            visited
+                .map { it.first }
+                .toSet()
+                .size,
+            leftArea)
+    }
+
+    fun solvePart1(): Long {
+        return walkGuard().first.toLong()
     }
 
     fun solvePart2(): Long {
-        return 0L
+        var successfulBlocks = 0L
+        for (iRow in rowIndices) {
+            for (iCol in colIndices) {
+                val modifiedCoordinate = Pair(iRow, iCol)
+                if (data[modifiedCoordinate] && modifiedCoordinate != start.first) {
+                    val modifiedDay = Day06(copyDataWithModification(modifiedCoordinate, false), start)
+                    if (!modifiedDay.walkGuard().second) {
+                        successfulBlocks += 1
+                    }
+                }
+            }
+        }
+        return successfulBlocks
     }
 }
 
@@ -62,7 +83,7 @@ fun main() {
         val day = Day06.fromInput(testInput)
         day.solvePart1()
     }
-    profiledCheck(0L, "Part 2 test") {
+    profiledCheck(6L, "Part 2 test") {
         val day = Day06.fromInput(testInput)
         day.solvePart2()
     }
