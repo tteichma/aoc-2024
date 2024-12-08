@@ -29,6 +29,14 @@ sealed class Direction(val nextCoordinate: (IntCoordinate) -> IntCoordinate) {
     val perpendicular
         get() = perpendicularDirsLists[this] ?: listOf()
 
+    val right
+        get() = when (this) {
+            DU -> LR
+            LR -> UD
+            UD -> RL
+            RL -> DU
+        }
+
     companion object {
         val entries
             get() = allEntries
