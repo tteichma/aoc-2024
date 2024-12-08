@@ -12,6 +12,7 @@ fun getLongsFromString(s: String) = signedIntegerRegex.findAll(s).map { it.group
 fun getUnsignedIntsFromString(s: String) = unsignedIntegerRegex.findAll(s).map { it.groupValues[0].toInt() }
 fun getSignedDoublesFromString(s: String) = signedIntegerRegex.findAll(s).map { it.groupValues[0].toDouble() }
 fun getIntListFromString(s: String) = getIntsFromString(s).toList()
+fun getLongListFromString(s: String) = getLongsFromString(s).toList()
 
 fun Int.isEven() = this % 2 == 0
 fun Int.isOdd() = this % 2 != 0

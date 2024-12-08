@@ -1,12 +1,31 @@
-private class Day07 {
+private class Day07(val equations: List<Pair<Long, List<Long>>>) {
     companion object {
         fun fromInput(input: List<String>): Day07 {
-            return Day07()
+            val equations = input.map { line ->
+                val splitLine = line.split(":")
+                Pair(splitLine[0].toLong(), getLongListFromString(splitLine[1]))
+            }
+            return Day07(equations)
+        }
+
+        fun yieldEquationResults(rhs: List<Long>): Sequence<Long> = sequence {
+            if (rhs.size == 1) {
+                yield(rhs.first())
+                return@sequence
+            }
+
+            for (result in yieldEquationResults(rhs.dropLast(1))) {
+                yield(result + rhs.last())
+                yield(result * rhs.last())
+            }
         }
     }
 
     fun solvePart1(): Long {
-        return 0L
+        val solvableEquations = equations.filter { (lhs, rhs) ->
+            yieldEquationResults(rhs).any { it == lhs }
+        }
+        return solvableEquations.sumOf { it.first }
     }
 
     fun solvePart2(): Long {
