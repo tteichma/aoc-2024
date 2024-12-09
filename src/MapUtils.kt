@@ -1,6 +1,9 @@
 // Note: Coordinates are (0, 0) is top left, (x, 0) is bottom left, (y, 0) is top right!
 typealias IntCoordinate = Pair<Int, Int>
 
+operator fun IntCoordinate.plus(other: IntCoordinate) = Pair(this.first + other.first, this.second+other.second)
+operator fun IntCoordinate.minus(other: IntCoordinate) = Pair(this.first - other.first, this.second-other.second)
+
 fun <T> List<List<T>>.rotateRight(): List<List<T>> {
     val lastOldColIndex = this.first().lastIndex
     val lastOldRowIndex = this.lastIndex
@@ -91,6 +94,14 @@ open class DataMap<T>(val data: List<List<T>>) {
                 .withIndex()
                 .map { if (iRow == coordinate.first && it.index == coordinate.second) newValue else it.value }
         }
+
+    fun getCoordinatesWithValue(value: T): Sequence<IntCoordinate> = sequence {
+        for ((iRow, row) in data.withIndex()) {
+            for ((iCol, it) in row.withIndex()) {
+                if (it == value) yield(Pair(iRow, iCol))
+            }
+        }
+    }
 
     protected fun IntCoordinate.isWithinBoundaries() =
         (this.first in rowIndices && this.second in colIndices)
