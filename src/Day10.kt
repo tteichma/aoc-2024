@@ -1,7 +1,10 @@
 private class Day10(heightData: List<List<Int>>) : DataMap<Int>(heightData) {
     // Endpoints of trails from a given coordinate.
-    private val trailCache = getCoordinatesWithValue(9)
+    private val endPointCache = getCoordinatesWithValue(9)
         .associateWith { setOf(it) }
+        .toMutableMap()
+    private val trailCountCache = getCoordinatesWithValue(9)
+        .associateWith { 1 }
         .toMutableMap()
 
     companion object {
@@ -13,21 +16,27 @@ private class Day10(heightData: List<List<Int>>) : DataMap<Int>(heightData) {
         }
     }
 
-    private fun getEndPoints(coordinate: IntCoordinate): Set<IntCoordinate> = trailCache.getOrPut(coordinate) {
+    private fun getEndPoints(coordinate: IntCoordinate): Set<IntCoordinate> = endPointCache.getOrPut(coordinate) {
         coordinate
             .getNeighbours { it == data[coordinate] + 1 }
             .map { getEndPoints(it) }
             .fold(setOf()) { acc, it -> acc + it }
     }
 
+    private fun getTrailCount(coordinate: IntCoordinate): Int = trailCountCache.getOrPut(coordinate) {
+        coordinate
+            .getNeighbours { it == data[coordinate] + 1 }
+            .sumOf { getTrailCount(it) }
+    }
+
     fun solvePart1(): Long {
         val trailHeads = getCoordinatesWithValue(0)
-        trailHeads.sumOf { getEndPoints(it).size }.toLong()
         return trailHeads.sumOf { getEndPoints(it).size }.toLong()
     }
 
     fun solvePart2(): Long {
-        return 0L
+        val trailHeads = getCoordinatesWithValue(0)
+        return trailHeads.sumOf { getTrailCount(it) }.toLong()
     }
 }
 
@@ -38,7 +47,7 @@ fun main() {
         val day = Day10.fromInput(testInput)
         day.solvePart1()
     }
-    profiledCheck(0L, "Part 2 test") {
+    profiledCheck(81L, "Part 2 test") {
         val day = Day10.fromInput(testInput)
         day.solvePart2()
     }
