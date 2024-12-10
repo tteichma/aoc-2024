@@ -1,8 +1,8 @@
 // Note: Coordinates are (0, 0) is top left, (x, 0) is bottom left, (y, 0) is top right!
 typealias IntCoordinate = Pair<Int, Int>
 
-operator fun IntCoordinate.plus(other: IntCoordinate) = Pair(this.first + other.first, this.second+other.second)
-operator fun IntCoordinate.minus(other: IntCoordinate) = Pair(this.first - other.first, this.second-other.second)
+operator fun IntCoordinate.plus(other: IntCoordinate) = Pair(this.first + other.first, this.second + other.second)
+operator fun IntCoordinate.minus(other: IntCoordinate) = Pair(this.first - other.first, this.second - other.second)
 
 fun <T> List<List<T>>.rotateRight(): List<List<T>> {
     val lastOldColIndex = this.first().lastIndex
@@ -105,6 +105,12 @@ open class DataMap<T>(val data: List<List<T>>) {
 
     protected fun IntCoordinate.isWithinBoundaries() =
         (this.first in rowIndices && this.second in colIndices)
+
+    protected fun IntCoordinate.getNeighbours(predicate: (T) -> Boolean = { true }) =
+        Direction.entries
+            .map { this@getNeighbours + it }
+            .filter { it.isWithinBoundaries() }
+            .filter { predicate(data[it]) }
 
     override fun toString() = data.joinToString("\n") { row -> row.joinToString("") }
 }
