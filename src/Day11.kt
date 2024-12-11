@@ -1,5 +1,5 @@
 private class Day11(val initial: List<Long>) {
-    val cache = mutableMapOf<Pair<Long, Int>, List<Long>>()  // (number, timesRemaining)
+    val stoneNumberCache = mutableMapOf<Pair<Long, Int>, Long>()  // (number, timesRemaining)
 
     companion object {
         fun fromInput(input: List<String>): Day11 {
@@ -7,25 +7,29 @@ private class Day11(val initial: List<Long>) {
         }
     }
 
-    fun evolveNumber(n: Long, times: Int = 1): List<Long> = cache.getOrPut(Pair(n, times)) {
-        if (times > 1) {
-            return@getOrPut evolveNumber(n, times - 1).flatMap { evolveNumber(it) }
+    fun getEvolvedStoneNumber(n: Long, times: Int = 1): Long = stoneNumberCache.getOrPut(Pair(n, times)) {
+        if (times == 0) {
+            return@getOrPut 1
         }
 
+        val nextTimes = times - 1
         return@getOrPut when {
-            n == 0L -> listOf(1L)
+            n == 0L -> getEvolvedStoneNumber(1L, nextTimes)
             n.toString().length % 2 == 0 -> {
                 val s = n.toString()
-                listOf(s.dropLast(s.length / 2).toLong(), s.drop(s.length / 2).toLong())
+                val nextNumbers = Pair(s.dropLast(s.length / 2).toLong(), s.drop(s.length / 2).toLong())
+                getEvolvedStoneNumber(nextNumbers.first, nextTimes) + getEvolvedStoneNumber(
+                    nextNumbers.second,
+                    nextTimes
+                )
             }
 
-            else -> listOf(2024 * n)
+            else -> getEvolvedStoneNumber(2024 * n, nextTimes)
         }
     }
 
     fun solve(times: Int): Long {
-        val endList = initial.flatMap { evolveNumber(it, times) }
-        return endList.size.toLong()
+        return initial.sumOf { getEvolvedStoneNumber(it, times) }
     }
 }
 
