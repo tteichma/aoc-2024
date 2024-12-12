@@ -5,7 +5,7 @@ private class Day12(data: List<List<Char>>) : DataMap<Char>(data) {
         }
     }
 
-    fun solvePart1(): Long {
+    fun solve(getScore: (Set<IntCoordinate>) -> Int): Long {
         val seenCoordinates = mutableSetOf<IntCoordinate>()
 
         var totalScore = 0L
@@ -15,18 +15,32 @@ private class Day12(data: List<List<Char>>) : DataMap<Char>(data) {
 
             val connectedCoordinates = floodMap(currentCoordinate) { it == data[currentCoordinate] }
             seenCoordinates.addAll(connectedCoordinates)
-
-            val numFences = connectedCoordinates
-                .sumOf { 4 - it.getNeighbours { it in connectedCoordinates }.size }
-
-            totalScore += numFences * connectedCoordinates.size
+            val score = getScore(connectedCoordinates)
+            totalScore += score
         }
 
         return totalScore
     }
 
+    fun solvePart1(): Long {
+        return solve { connectedCoordinates: Set<IntCoordinate> ->
+            val numFences =
+                connectedCoordinates.sumOf { coord -> 4 - coord.getNeighbours { it in connectedCoordinates }.size }
+            numFences * connectedCoordinates.size
+        }
+    }
+
     fun solvePart2(): Long {
-        return 0L
+        return solve { connectedCoordinates: Set<IntCoordinate> ->
+            val numFences = Direction.entries.sumOf { direction ->
+                connectedCoordinates.count {
+                    (it + direction !in connectedCoordinates)
+                            && ((it + direction.right !in connectedCoordinates)
+                            || (it + direction + direction.right in connectedCoordinates))
+                }
+            }
+            (numFences * connectedCoordinates.size)
+        }
     }
 }
 
@@ -37,7 +51,7 @@ fun main() {
         val day = Day12.fromInput(testInput)
         day.solvePart1()
     }
-    profiledCheck(0L, "Part 2 test") {
+    profiledCheck(1206L, "Part 2 test") {
         val day = Day12.fromInput(testInput)
         day.solvePart2()
     }
