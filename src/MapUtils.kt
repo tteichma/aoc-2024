@@ -87,6 +87,10 @@ open class DataMap<T>(val data: List<List<T>>) {
     val rowIndices = data.indices
     val colIndices = data.first().indices
 
+    val coordinates by lazy { rowIndices.flatMap { indRow -> colIndices.map { indCol -> Pair(indRow, indCol) } } }
+
+    operator fun get(key: IntCoordinate) = data[key.first][key.second]
+
     fun copyDataWithModification(coordinate: IntCoordinate, newValue: T) = data
         .withIndex()
         .map { (iRow, row) ->
@@ -106,11 +110,28 @@ open class DataMap<T>(val data: List<List<T>>) {
     protected fun IntCoordinate.isWithinBoundaries() =
         (this.first in rowIndices && this.second in colIndices)
 
-    protected fun IntCoordinate.getNeighbours(predicate: (T) -> Boolean = { true }) =
+    protected fun IntCoordinate.getNeighbours(predicate: (IntCoordinate) -> Boolean = { true }) =
         Direction.entries
             .map { this@getNeighbours + it }
             .filter { it.isWithinBoundaries() }
-            .filter { predicate(data[it]) }
+            .filter { predicate(it) }
+
+    fun floodMap(start: IntCoordinate, predicate: (T) -> Boolean): Set<IntCoordinate> {
+        val expectedValue = data[start]
+        val seen = mutableSetOf<IntCoordinate>()
+        val toExplore = mutableSetOf(start)
+
+        while (toExplore.isNotEmpty()) {
+            val currentCoordinate = toExplore.pop() ?: break
+            seen.add(currentCoordinate)
+            toExplore.addAll(
+                currentCoordinate
+                    .getNeighbours { this[it] == expectedValue }
+                    .filterNot { it in seen })
+        }
+
+        return seen
+    }
 
     override fun toString() = data.joinToString("\n") { row -> row.joinToString("") }
 }

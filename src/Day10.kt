@@ -18,14 +18,14 @@ private class Day10(heightData: List<List<Int>>) : DataMap<Int>(heightData) {
 
     private fun getEndPoints(coordinate: IntCoordinate): Set<IntCoordinate> = endPointCache.getOrPut(coordinate) {
         coordinate
-            .getNeighbours { it == data[coordinate] + 1 }
+            .getNeighbours { data[it] == data[coordinate] + 1 }
             .map { getEndPoints(it) }
             .fold(setOf()) { acc, it -> acc + it }
     }
 
     private fun getTrailCount(coordinate: IntCoordinate): Int = trailCountCache.getOrPut(coordinate) {
         coordinate
-            .getNeighbours { it == data[coordinate] + 1 }
+            .getNeighbours { data[it] == data[coordinate] + 1 }
             .sumOf { getTrailCount(it) }
     }
 
