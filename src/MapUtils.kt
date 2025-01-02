@@ -1,5 +1,6 @@
 // Note: Coordinates are (0, 0) is top left, (x, 0) is bottom left, (y, 0) is top right!
 typealias IntCoordinate = Pair<Int, Int>
+typealias CoordinateDirection = Pair<IntCoordinate, Direction>
 
 operator fun IntCoordinate.plus(other: IntCoordinate) = Pair(this.first + other.first, this.second + other.second)
 operator fun IntCoordinate.minus(other: IntCoordinate) = Pair(this.first - other.first, this.second - other.second)
