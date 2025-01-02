@@ -44,6 +44,14 @@ sealed class Direction(val nextCoordinate: (IntCoordinate) -> IntCoordinate) {
         val entries
             get() = allEntries
 
+        fun fromChar(c: Char) = when (c) {
+            '>' -> LR
+            '<' -> RL
+            '^' -> DU
+            'v' -> UD
+            else -> throw RuntimeException("Unknown direction $c.")
+        }
+
         private val oppositeDirs by lazy {
             mapOf(
                 LR to RL,
@@ -98,6 +106,19 @@ open class DataMap<T>(val data: List<List<T>>) {
                 .withIndex()
                 .map { if (iRow == coordinate.first && it.index == coordinate.second) newValue else it.value }
         }
+
+    fun getCopyWithModifications(coordinatesValues: Map<IntCoordinate, T>) = DataMap(
+        data
+            .withIndex()
+            .map { (iRow, row) ->
+                row
+                    .withIndex()
+                    .map {
+                        val coordinate = Pair(iRow, it.index)
+                        coordinatesValues.getOrDefault(coordinate, data[coordinate])
+                    }
+            }
+    )
 
     fun getCoordinatesWithValue(value: T): Sequence<IntCoordinate> = sequence {
         for ((iRow, row) in data.withIndex()) {
