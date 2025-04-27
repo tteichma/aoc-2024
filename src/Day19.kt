@@ -31,8 +31,8 @@ private class Day19(val towels: Set<String>, val designs: List<String>) {
         return designs.count { yieldPossibleTowelCombinations(it, listOf(), towels).hasNext() }
     }
 
-    fun solvePart2(): Long {
-        return 0L
+    fun solvePart2(): Int {
+        return designs.sumOf { yieldPossibleTowelCombinations(it, listOf(), towels).asSequence().toList().size }
     }
 }
 
@@ -43,7 +43,7 @@ fun main() {
         val day = Day19.fromInput(testInput)
         day.solvePart1()
     }
-    profiledCheck(0L, "Part 2 test") {
+    profiledCheck(16, "Part 2 test") {
         val day = Day19.fromInput(testInput)
         day.solvePart2()
     }
