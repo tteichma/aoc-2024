@@ -1,4 +1,6 @@
 private class Day19(val towels: Set<String>, val designs: List<String>) {
+    val knownSuffixCounts = mutableMapOf<String, Long>()
+
     companion object {
         fun fromInput(input: List<String>): Day19 {
             val towels = input.first().split(", ").toSet()
@@ -8,31 +10,31 @@ private class Day19(val towels: Set<String>, val designs: List<String>) {
         }
     }
 
-    fun yieldPossibleTowelCombinations(
+    fun getNumPossibleTowelCombinationsForSuffix(
         designSuffix: String,
-        towelsSoFar: List<String>,
-        remainingTowels: Set<String>
-    ): Iterator<List<String>> = iterator {
-        for (towel in remainingTowels) {
+    ): Long {
+        knownSuffixCounts[designSuffix]?.let { return it }
+
+        var numMatching = 0L
+        for (towel in towels) {
             if (designSuffix == towel) {
-                yield(towelsSoFar + towel)
+                ++numMatching
             } else if (designSuffix.take(towel.length) == towel) {
-                yieldPossibleTowelCombinations(
+                numMatching += getNumPossibleTowelCombinationsForSuffix(
                     designSuffix.drop(towel.length),
-                    towelsSoFar + towel,
-                    remainingTowels
                 )
-                    .forEach { yield(towelsSoFar + it) }
             }
         }
+        knownSuffixCounts[designSuffix] = numMatching
+        return numMatching
     }
 
     fun solvePart1(): Int {
-        return designs.count { yieldPossibleTowelCombinations(it, listOf(), towels).hasNext() }
+        return designs.count { getNumPossibleTowelCombinationsForSuffix(it)  > 0}
     }
 
-    fun solvePart2(): Int {
-        return designs.sumOf { yieldPossibleTowelCombinations(it, listOf(), towels).asSequence().toList().size }
+    fun solvePart2(): Long {
+        return designs.sumOf { getNumPossibleTowelCombinationsForSuffix(it) }
     }
 }
 
