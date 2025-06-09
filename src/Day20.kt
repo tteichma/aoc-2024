@@ -1,7 +1,11 @@
 import java.util.PriorityQueue
 
-private class Day20(data: List<List<Boolean>>, val start: IntCoordinate, val end: IntCoordinate) :
+private class Day20(data: List<List<Boolean>>, start: IntCoordinate, end: IntCoordinate) :
     DataMap<Boolean>(data) {
+    val distFromStart = getDistancesToCoordinate(start)
+    val distsToEnd = getDistancesToCoordinate(end)
+    val startToEndWithoutCheats = distsToEnd[start]!!
+
     companion object {
         fun fromInput(input: List<String>): Day20 {
             var start: IntCoordinate? = null
@@ -60,32 +64,63 @@ private class Day20(data: List<List<Boolean>>, val start: IntCoordinate, val end
     }
 
     // savingPredicate: Function of time saved, that is ture if it should be contained.
-    fun solvePart1(savingPredicate: (Long) -> Boolean): Long {
-
-        val distFromStart = getDistancesToCoordinate(start)
-        val distsToEnd = getDistancesToCoordinate(end)
-
-        val startToEndWithoutCheats = distsToEnd[start]!!
+    fun solve(allowedCheatDistance: Int, savingPredicate: (Long) -> Boolean): Long {
 
         val savedTimeCounts = mutableMapOf<Long, Long>()
-        for ((coordinate, distStartToCheat) in distFromStart) {
-            for (coordinateCheatWall in coordinate.getNeighbours { !data[it] }) {
-                for (coordinateCheatPath in coordinateCheatWall.getNeighbours { data[it] && it != coordinate }) {
-                    val savedDistance =
-                        startToEndWithoutCheats - (distStartToCheat + 2 + distsToEnd[coordinateCheatPath]!!)
-
-                    if (savedDistance > 0) {
-                        savedTimeCounts[savedDistance] = (savedTimeCounts[savedDistance] ?: 0) + 1
+        for ((coordinateCheatStart, distStartToCheat) in distFromStart) {
+            val cheatEndCoordinatesWithCheatDist = sequence {
+                for (i1 in 0..allowedCheatDistance) {
+                    for (i2 in 0..allowedCheatDistance - i1) {
+                        val cheatDistance = i1 + i2
+                        yield(
+                            Pair(
+                                IntCoordinate(
+                                    coordinateCheatStart.first + i1,
+                                    coordinateCheatStart.second + i2
+                                ), cheatDistance
+                            )
+                        )
+                        yield(
+                            Pair(
+                                IntCoordinate(
+                                    coordinateCheatStart.first - i1,
+                                    coordinateCheatStart.second + i2
+                                ), cheatDistance
+                            )
+                        )
+                        yield(
+                            Pair(
+                                IntCoordinate(
+                                    coordinateCheatStart.first + i1,
+                                    coordinateCheatStart.second - i2
+                                ), cheatDistance
+                            )
+                        )
+                        yield(
+                            Pair(
+                                IntCoordinate(
+                                    coordinateCheatStart.first - i1,
+                                    coordinateCheatStart.second - i2
+                                ), cheatDistance
+                            )
+                        )
                     }
+                }
+            }
+                .toSet()  // Remove duplicates from i==0  and i== allowedCheatDistance
+                .filter { it.first.isWithinBoundaries() && data[it.first] }
+
+            for ((coordinateCheatEnd, cheatDist) in cheatEndCoordinatesWithCheatDist) {
+                val savedDistance =
+                    startToEndWithoutCheats - (distStartToCheat + cheatDist + distsToEnd[coordinateCheatEnd]!!)
+
+                if (savedDistance > 0) {
+                    savedTimeCounts[savedDistance] = (savedTimeCounts[savedDistance] ?: 0) + 1
                 }
             }
         }
 
         return savedTimeCounts.filter { savingPredicate(it.key) }.values.sum()
-    }
-
-    fun solvePart2(): Long {
-        return 0L
     }
 }
 
@@ -109,7 +144,30 @@ fun main() {
     for ((inputTime, expected) in testData1) {
         profiledCheck(expected, "Part 1 test (saving $inputTime ps)") {
             val day = Day20.fromInput(testInput)
-            day.solvePart1 { it == inputTime }
+            day.solve(2) { it == inputTime }
+        }
+    }
+
+    val testData2 = mapOf(
+        50L to 32L,
+        52L to 31L,
+        54L to 29L,
+        56L to 39L,
+        58L to 25L,
+        60L to 23L,
+        62L to 20L,
+        64L to 19L,
+        66L to 12L,
+        68L to 14L,
+        70L to 12L,
+        72L to 22L,
+        74L to 4L,
+        76L to 3L,
+    )
+    for ((inputTime, expected) in testData2) {
+        profiledCheck(expected, "Part 2 test (saving $inputTime ps)") {
+            val day = Day20.fromInput(testInput)
+            day.solve(20) { it == inputTime }
         }
     }
 
@@ -117,10 +175,10 @@ fun main() {
     val input = readInput("Day20")
     profiledExecute("Part 1") {
         val day = Day20.fromInput(input)
-        day.solvePart1 { it >= 100 }
+        day.solve(2) { it >= 100 }
     }.println()
     profiledExecute("Part 2") {
         val day = Day20.fromInput(input)
-        day.solvePart2()
+        day.solve(20) { it >= 100 }
     }.println()
 }
