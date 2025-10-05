@@ -18,13 +18,13 @@ private abstract class KeyPad {
             val verticalSequence = (if (offset.second > 0) "^" else "v").repeat(abs(offset.second))
 
             val currentSubSequence = mutableListOf<String>()
-            if (offset.first != 0&& fromPos + IntCoordinate(offset.first, 0) in definedPositions) {
+            if (offset.first != 0 && fromPos + IntCoordinate(offset.first, 0) in definedPositions) {
                 currentSubSequence.add("${horizontalSequence}${verticalSequence}A")
             }
-            if (offset.second!=0&&fromPos + IntCoordinate(0, offset.second) in definedPositions) {
+            if (offset.second != 0 && fromPos + IntCoordinate(0, offset.second) in definedPositions) {
                 currentSubSequence.add("${verticalSequence}${horizontalSequence}A")
             }
-            if (offset == IntCoordinate(0,0)){
+            if (offset == IntCoordinate(0, 0)) {
                 currentSubSequence.add("A")
             }
             outputSequenceTokens.add(currentSubSequence)
@@ -34,74 +34,73 @@ private abstract class KeyPad {
     }
 }
 
-    private object NumberKeyPad : KeyPad() {
-        override fun createKeyToPosition(): Map<Char, IntCoordinate> {
-            val out = mutableMapOf(
-                '0' to IntCoordinate(1, 0), 'A' to IntCoordinate(2, 0)
-            )
-
-            for (numTo in 1..9) {
-                out[numTo.digitToChar()] = IntCoordinate((numTo - 1) % 3, (numTo - 1) / 3 + 1)
-            }
-            return out.toMap()
-        }
-    }
-
-    private object DirectionKeyPad : KeyPad() {
-        override fun createKeyToPosition() = mapOf(
-            '<' to IntCoordinate(0, 0),
-            'v' to IntCoordinate(1, 0),
-            '>' to IntCoordinate(2, 0),
-            '^' to IntCoordinate(1, 1),
-            'A' to IntCoordinate(2, 1),
+private object NumberKeyPad : KeyPad() {
+    override fun createKeyToPosition(): Map<Char, IntCoordinate> {
+        val out = mutableMapOf(
+            '0' to IntCoordinate(1, 0), 'A' to IntCoordinate(2, 0)
         )
+
+        for (numTo in 1..9) {
+            out[numTo.digitToChar()] = IntCoordinate((numTo - 1) % 3, (numTo - 1) / 3 + 1)
+        }
+        return out.toMap()
+    }
+}
+
+private object DirectionKeyPad : KeyPad() {
+    override fun createKeyToPosition() = mapOf(
+        '<' to IntCoordinate(0, 0),
+        'v' to IntCoordinate(1, 0),
+        '>' to IntCoordinate(2, 0),
+        '^' to IntCoordinate(1, 1),
+        'A' to IntCoordinate(2, 1),
+    )
+}
+
+private class Day21(val lines: List<String>) {
+    companion object {
+        fun fromInput(input: List<String>): Day21 {
+            return Day21(input)
+        }
     }
 
-    private class Day21(val lines: List<String>) {
-        companion object {
-            fun fromInput(input: List<String>): Day21 {
-                return Day21(input)
+    fun solve(numDirectionPads: Int): Long {
+        var result = 0L
+        for (line in lines) {
+            var possibleInputSequences = NumberKeyPad.yieldPossibleInputSequences(line).toList()
+            repeat(numDirectionPads) {
+                val lowestNumPresses = possibleInputSequences.minOf { it.length }
+                possibleInputSequences =
+                    possibleInputSequences
+                        .filter { it.length == lowestNumPresses }
+                        .take(1)
+                        .flatMap { DirectionKeyPad.yieldPossibleInputSequences(it) }
             }
+            result += possibleInputSequences.minOf { it.length } * line.dropLast(1).toInt()
         }
-
-        fun solvePart1(): Long {
-            var result = 0L
-            for (line in lines) {
-                var possibleInputSequences = NumberKeyPad.yieldPossibleInputSequences(line).toList()
-                repeat(2) {
-                    possibleInputSequences =
-                        possibleInputSequences.flatMap { DirectionKeyPad.yieldPossibleInputSequences(it) }
-                }
-                result += possibleInputSequences.minOf { it.length } * line.dropLast(1).toInt()
-            }
-            return result
-        }
-
-        fun solvePart2(): Long {
-            return 0L
-        }
+        return result
     }
 
-    fun main() {
-        // Or read a large test input from the `src/Day21_test.txt` file:
-        val testInput = readInput("Day21_test")
-        profiledCheck(126384L, "Part 1 test") {
-            val day = Day21.fromInput(testInput)
-            day.solvePart1()
-        }
-        profiledCheck(0L, "Part 2 test") {
-            val day = Day21.fromInput(testInput)
-            day.solvePart2()
-        }
+    fun solvePart1() = solve(2)
+    fun solvePart2() = solve(26)
+}
 
-        // Read the input from the `src/Day21.txt` file.
-        val input = readInput("Day21")
-        profiledExecute("Part 1") {
-            val day = Day21.fromInput(input)
-            day.solvePart1()
-        }.println()
-        profiledExecute("Part 2") {
-            val day = Day21.fromInput(input)
-            day.solvePart2()
-        }.println()
+fun main() {
+    // Or read a large test input from the `src/Day21_test.txt` file:
+    val testInput = readInput("Day21_test")
+    profiledCheck(126384L, "Part 1 test") {
+        val day = Day21.fromInput(testInput)
+        day.solvePart1()
     }
+
+    // Read the input from the `src/Day21.txt` file.
+    val input = readInput("Day21")
+    profiledExecute("Part 1") {
+        val day = Day21.fromInput(input)
+        day.solvePart1()
+    }.println()
+    profiledExecute("Part 2") {
+        val day = Day21.fromInput(input)
+        day.solvePart2()
+    }.println()
+}
