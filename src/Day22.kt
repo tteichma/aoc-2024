@@ -1,17 +1,15 @@
 private class Day22(val initialSecrets: List<Long>) {
-    fun advanceSecrets(numTimes: Int): List<Long> {
-        var secrets = initialSecrets
-        secrets.println()
-        repeat(numTimes) {
-            secrets = secrets
-                .map { prune(it.xor(it * 64)) }
-                .map { prune(it.xor(it / 32)) }
-                .map { prune(it.xor(it * 2048 ))}
-        }
-        return secrets
-    }
+    data class PriceHistoryKey(val a: Byte, val b: Byte, val c: Byte, val d: Byte)
 
     companion object {
+        const val NUM_ITERATIONS = 2000
+
+        fun advanceSecret(x: Long): Long {
+            val step1 = prune(x.xor(x * 64))
+            val step2 = prune(step1.xor(step1 / 32))
+            return prune(step2.xor(step2 * 2048))
+        }
+
         fun prune(x: Long) = x % 16777216
 
         fun fromInput(input: List<String>): Day22 {
@@ -20,23 +18,54 @@ private class Day22(val initialSecrets: List<Long>) {
     }
 
     fun solvePart1(): Long {
-        return advanceSecrets(2000).sum()
+        var secrets = initialSecrets
+        repeat(NUM_ITERATIONS) {
+            secrets = secrets.map { advanceSecret(it) }
+        }
+        return secrets.sum()
     }
 
     fun solvePart2(): Long {
-        return 0L
+        val historiesToSellValues = initialSecrets.map { initialSecret ->
+            val secretSeries =
+                (initialSecret..initialSecret + NUM_ITERATIONS).runningReduce { acc, _ -> advanceSecret(acc) }
+            val prices = secretSeries.map { (it % 10) }
+            val pricesBySequence = mutableMapOf<PriceHistoryKey, Long>()
+            prices
+                .reversed()  // Makes first occurrence take precedence.
+                .windowed(5)
+                .associateByTo(pricesBySequence, {
+                    PriceHistoryKey(
+                        (it[3] - it[4]).toByte(),
+                        (it[2] - it[3]).toByte(),
+                        (it[1] - it[2]).toByte(),
+                        (it[0] - it[1]).toByte()
+                    )
+                }) { it[0] }
+            pricesBySequence
+        }
+        val bestKey =  historiesToSellValues
+            .flatMap { it.keys }
+            .toSet()
+            .maxBy { key ->
+                historiesToSellValues
+                    .sumOf { it.getOrDefault(key, 0L) }
+            }
+        val prices = historiesToSellValues.map { it.getOrDefault(bestKey,0L) }
+        prices.println()
+        return prices.sum()
     }
 }
 
 fun main() {
-    // Or read a large test input from the `src/Day22_test.txt` file:
-    val testInput = readInput("Day22_test")
+    val testInput1 = readInput("Day22_test1")
+    val testInput2 = readInput("Day22_test2")
     profiledCheck(37327623L, "Part 1 test") {
-        val day = Day22.fromInput(testInput)
+        val day = Day22.fromInput(testInput1)
         day.solvePart1()
     }
-    profiledCheck(0L, "Part 2 test") {
-        val day = Day22.fromInput(testInput)
+    profiledCheck(23L, "Part 2 test") {
+        val day = Day22.fromInput(testInput2)
         day.solvePart2()
     }
 
