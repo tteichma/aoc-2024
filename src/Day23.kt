@@ -1,17 +1,25 @@
 private class Day23(val nodesToNeighbors: Map<String, Set<String>>) {
-    fun getInterConnectionsOfSize(size: Int): Set<Set<String>> {
-        if (size == 1) return nodesToNeighbors.keys.map { setOf(it) }.toSet()
+    fun getInterConnectionsOfSize(targetSize: Int? = null): Set<Set<String>> {
+        var size = 1
+        var currentInterConnections = nodesToNeighbors.keys.map { setOf(it) }.toSet()
 
-        val smallerInterConnections = getInterConnectionsOfSize(size - 1)
-        return smallerInterConnections
-            .flatMap { interConnection ->
-                nodesToNeighbors.getOrDefault(interConnection.first(), setOf())
-                    .filter { candidate ->
-                        interConnection.all { candidate in nodesToNeighbors.getOrDefault(it, setOf()) }
-                    }
-                    .map { interConnection + it }
+        while (size != targetSize) {
+            val nextInterConnections = currentInterConnections
+                .flatMap { interConnection ->
+                    nodesToNeighbors.getOrDefault(interConnection.first(), setOf())
+                        .filter { candidate ->
+                            interConnection.all { candidate in nodesToNeighbors.getOrDefault(it, setOf()) }
+                        }
+                        .map { interConnection + it }
+                }
+                .toSet()
+            if (nextInterConnections.isEmpty()) {
+                return if (targetSize == null) currentInterConnections else setOf()
             }
-            .toSet()
+            currentInterConnections = nextInterConnections
+            ++size
+        }
+        return currentInterConnections
     }
 
     companion object {
@@ -33,8 +41,9 @@ private class Day23(val nodesToNeighbors: Map<String, Set<String>>) {
             .toLong()
     }
 
-    fun solvePart2(): Long {
-        return 0L
+    fun solvePart2(): String {
+        val interConnections = getInterConnectionsOfSize()
+        return interConnections.first().sorted().joinToString(",")
     }
 }
 
@@ -45,7 +54,7 @@ fun main() {
         val day = Day23.fromInput(testInput)
         day.solvePart1()
     }
-    profiledCheck(0L, "Part 2 test") {
+    profiledCheck("co,de,ka,ta", "Part 2 test") {
         val day = Day23.fromInput(testInput)
         day.solvePart2()
     }
